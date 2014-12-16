@@ -17,6 +17,9 @@ dataType ex(nodeType *p);
 int yylex(void);
 vartypeEnum type; //Global to handle list of variable declarations, couldn't get inherited attributes to work
 flagsEnum flags;
+char* list_name; //Need to find a better way to have state variables
+int list_count = 0;
+int list_length = 0;
 
 void yyerror(char *s);
 /* int sym[26]; JWJ:  removed to replace with real Symbol Table                  */
@@ -32,8 +35,8 @@ void yyerror(char *s);
 %token <lValue> NUMBER
 %token <fValue> FLOAT
 %token <sName> VARIABLE /* changed JWJ */
-%token WHILE IF PRINT B_BEGIN B_END T_INT T_DOUBLE T_LONG CONST
-%token DO FOR UNTIL
+%token WHILE IF PRINT B_BEGIN B_END T_INT T_DOUBLE T_LONG T_LIST CONST
+%token DO FOR UNTIL LIST_INIT LIST_SET LIST_ACCESS
 %nonassoc IFX
 %nonassoc ELSE
 
@@ -42,7 +45,7 @@ void yyerror(char *s);
 %left '*' '/'
 %nonassoc UMINUS
 
-%type <nPtr> stmt stmt_list expr term factor typedecl_expr assgn_expr for_loop variable_list var_opr
+%type <nPtr> stmt stmt_list expr term factor typedecl_expr assgn_expr for_loop variable_list var_opr listdecl_expr inline_list inline_list_values
 
 %%
 
@@ -81,8 +84,10 @@ for_loop:
         ;
 
 assgn_expr: 
-          typedecl_expr                 { $$ = $1; }
-        | VARIABLE '=' expr             { $$ = opr('=', 2, id($1), $3); }
+          typedecl_expr                     { $$ = $1; }
+        | VARIABLE '=' expr                 { $$ = opr('=', 2, id($1), $3); }
+        | listdecl_expr                     { $$ = $1; }
+        | VARIABLE '[' NUMBER ']' '=' expr  { $$ = opr(LIST_SET, 3, id($1), con($3), $6); }
         ;
 
 expr:
@@ -100,20 +105,21 @@ term:
         ;
 
 factor:
-          NUMBER                { $$ = con($1); }
-        | FLOAT                 { $$ = fpcon($1); }
-        | VARIABLE              { $$ = id($1); }
-        | '(' T_INT ')' expr    { $$ = opr(T_INT, 1, $4); }
-        | '(' T_DOUBLE ')' expr { $$ = opr(T_DOUBLE, 1, $4); }
-        | '-' expr %prec UMINUS { $$ = opr(UMINUS, 1, $2); }
-        | expr '^' expr         { $$ = opr('^', 2, $1, $3); }
-        | expr '<' expr         { $$ = opr('<', 2, $1, $3); }
-        | expr '>' expr         { $$ = opr('>', 2, $1, $3); }
-        | expr GE expr          { $$ = opr(GE, 2, $1, $3); }
-        | expr LE expr          { $$ = opr(LE, 2, $1, $3); }
-        | expr NE expr          { $$ = opr(NE, 2, $1, $3); }
-        | expr EQ expr          { $$ = opr(EQ, 2, $1, $3); }
-        | '(' expr ')'          { $$ = $2; }
+          NUMBER                    { $$ = con($1); }
+        | FLOAT                     { $$ = fpcon($1); }
+        | VARIABLE                  { $$ = id($1); }
+        | VARIABLE '[' NUMBER ']'   { $$ = opr(LIST_ACCESS, 2, id($1), con($3)); }
+        | '(' T_INT ')' expr        { $$ = opr(T_INT, 1, $4); }
+        | '(' T_DOUBLE ')' expr     { $$ = opr(T_DOUBLE, 1, $4); }
+        | '-' expr %prec UMINUS     { $$ = opr(UMINUS, 1, $2); }
+        | expr '^' expr             { $$ = opr('^', 2, $1, $3); }
+        | expr '<' expr             { $$ = opr('<', 2, $1, $3); }
+        | expr '>' expr             { $$ = opr('>', 2, $1, $3); }
+        | expr GE expr              { $$ = opr(GE, 2, $1, $3); }
+        | expr LE expr              { $$ = opr(LE, 2, $1, $3); }
+        | expr NE expr              { $$ = opr(NE, 2, $1, $3); }
+        | expr EQ expr              { $$ = opr(EQ, 2, $1, $3); }
+        | '(' expr ')'              { $$ = $2; }
         ;
 
 typedecl_expr:
@@ -134,6 +140,19 @@ var_opr:
           VARIABLE          { $$ = cid($1, type, flags); }
         | VARIABLE '=' expr { $$ = opr('=', 2, cid($1, type, flags), $3); }
         ;
+
+listdecl_expr:
+          T_LIST VARIABLE '[' NUMBER ']'                                     { $$ = opr(LIST_INIT, 2, id($2), con($4)); }
+        | T_LIST VARIABLE '[' NUMBER ']' '=' { list_name = $2; list_length = $4; } inline_list { $$ = $8; }
+        ;
+
+inline_list:
+        '[' inline_list_values ']' { $$ = $2; }
+        ;
+
+inline_list_values:
+          expr ',' inline_list_values { list_count -= 1; $$ = $3; ex(opr(LIST_SET, 3, id(list_name), con(list_count), $1)); }
+        | expr                        { ex(opr(LIST_INIT, 2, id(list_name), con(list_length)));list_count = list_length-1; ex(opr(LIST_SET, 3, id(list_name), con(list_count), $1)); $$ = $1; }
 
 %%
 

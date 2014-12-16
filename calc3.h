@@ -16,6 +16,7 @@ typedef enum {
 	TYPE_INT,
 	TYPE_LONG,
 	TYPE_DOUBLE,
+	TYPE_LIST,
 	TYPE_CONST,
 	TYPE_FUNCTION, //rgc: for function support later on
 	TYPE_UNDEF	 	//rgc: used by the parser for an identifier not being initialized

@@ -34,7 +34,7 @@ END_COMMENT_LINE [^\n]*"\*\/"
 				return FLOAT;
 			}
 
-[-()<>=+*/;{}.,%\^] {
+[-()<>=+*/;{}.,%\^\[\]] {
                 return *yytext;
              }
 
@@ -55,6 +55,8 @@ END_COMMENT_LINE [^\n]*"\*\/"
 "double"		return T_DOUBLE;
 "float"		    return T_DOUBLE;
 "long"          return T_LONG;
+"list"          return T_LIST;
+"array"         return T_LIST;
 "const"         return CONST;
 
 [a-zA-Z_][a-zA-Z0-9_]* {  /* changed JWJ */

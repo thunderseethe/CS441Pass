@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
 #include "symbol_table.h"
 #include "calc3.h"
 #include "y.tab.h"
@@ -69,6 +70,50 @@ dataType ex(nodeType *p) {
 					return rvTrue;
 				case FOR:
 					for( ex(p->opr.op[0]); ex(p->opr.op[1])._int; ex(p->opr.op[2])) { ex(p->opr.op[3]); } return rvTrue;
+				case LIST_INIT: {
+					const char *name = p->opr.op[0]->id.s;
+					int length = p->opr.op[1]->con.value._int;
+					struct symbol_entry *entry = getSymbolEntry(name);
+					if(entry){
+						fprintf(stderr, "Warning: redeclaring variable %s in the same scope\n", name);
+					}
+					entry = calloc(1, sizeof(struct symbol_entry));
+					entry->name = name;
+					entry->value.type = TYPE_LIST; // rgc: new LHS var inherits type from idnode type
+					entry->value.flag = FLAG_VAR;
+					entry->value._int = length;
+					addSymbol(entry, 0);
+					free(entry);
+					for(int i = 0; i < length; i++){
+						int l = strlen(name) + 21;
+						entry = calloc(1, sizeof(struct symbol_entry));
+						entry->name = malloc(l);
+						sprintf(entry->name, "%d%s", i, name);
+						entry->value.type = TYPE_UNDEF;
+						entry->value.flag = FLAG_VAR;
+						addSymbol(entry, 0);
+						free(entry);
+					}
+					return rvTrue;
+				}
+				case LIST_SET: {
+					dataType rhs = ex(p->opr.op[2]);
+					char* name = p->opr.op[0]->id.s;
+					int index = p->opr.op[1]->con.value._int;
+					char* id = malloc(strlen(name)+21);
+					sprintf(id, "%d%s", index, name);
+					struct symbol_entry *entry = getSymbolEntry(id);
+					entry->value = rhs;
+					return entry->value;
+				}
+				case LIST_ACCESS: {
+					char*name = p->opr.op[0]->id.s;
+					int index = p->opr.op[1]->con.value._int;
+					char* id = malloc(strlen(name)+21);
+					sprintf(id, "%d%s", index, name);
+					struct symbol_entry *entry = getSymbolEntry(id);
+					return entry->value;
+				}
 				case PRINT:	{
 					dataType pv = ex(p->opr.op[0]);
 					if (pv.type == TYPE_INT) {

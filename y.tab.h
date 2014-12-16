@@ -50,17 +50,21 @@
      T_INT = 266,
      T_DOUBLE = 267,
      T_LONG = 268,
-     CONST = 269,
-     DO = 270,
-     FOR = 271,
-     UNTIL = 272,
-     IFX = 273,
-     ELSE = 274,
-     NE = 275,
-     EQ = 276,
-     LE = 277,
-     GE = 278,
-     UMINUS = 279
+     T_LIST = 269,
+     CONST = 270,
+     DO = 271,
+     FOR = 272,
+     UNTIL = 273,
+     LIST_INIT = 274,
+     LIST_SET = 275,
+     LIST_ACCESS = 276,
+     IFX = 277,
+     ELSE = 278,
+     NE = 279,
+     EQ = 280,
+     LE = 281,
+     GE = 282,
+     UMINUS = 283
    };
 #endif
 /* Tokens.  */
@@ -75,24 +79,28 @@
 #define T_INT 266
 #define T_DOUBLE 267
 #define T_LONG 268
-#define CONST 269
-#define DO 270
-#define FOR 271
-#define UNTIL 272
-#define IFX 273
-#define ELSE 274
-#define NE 275
-#define EQ 276
-#define LE 277
-#define GE 278
-#define UMINUS 279
+#define T_LIST 269
+#define CONST 270
+#define DO 271
+#define FOR 272
+#define UNTIL 273
+#define LIST_INIT 274
+#define LIST_SET 275
+#define LIST_ACCESS 276
+#define IFX 277
+#define ELSE 278
+#define NE 279
+#define EQ 280
+#define LE 281
+#define GE 282
+#define UMINUS 283
 
 
 
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 25 "calc3.y"
+#line 28 "calc3.y"
 {
     long lValue;                 /* integer value */
 	double fValue;               /* floating point value */
@@ -100,7 +108,7 @@ typedef union YYSTYPE
     nodeType *nPtr;             /* node pointer */
 }
 /* Line 1529 of yacc.c.  */
-#line 104 "y.tab.h"
+#line 112 "y.tab.h"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1

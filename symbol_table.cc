@@ -119,7 +119,8 @@ addSymbol (symbol_entry * new_entry, int lineno)
   map < string, symbol_entry > *curr_symbol_table;
 
   //Used to track the current block level
-  int symbol_table_level = symbol_table_stack.size ();
+  mint symbol_table_level = symbol_table_stack.size ();
+  
   if (new_entry->size == 0)
     new_entry->size = sizeof(struct symbol_entry);
 
