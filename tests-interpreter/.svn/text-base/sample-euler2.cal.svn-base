@@ -1,0 +1,12 @@
+begin
+float n = 10000;
+int i = 1;
+float euler;
+euler = 1.0 + (1.0 / n);
+while (i < n) 
+{
+	euler = euler * (1.0 + (1 / n));
+	i = i + 1;
+}
+print euler;
+end

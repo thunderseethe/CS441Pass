@@ -1,0 +1,61 @@
+Only in FinalProjectStageA-patched/: 441p1.diff
+Only in FinalProjectStageA-patched/: 441p2.diff
+diff -r -u FinalProjectStageA-patched/calc3a.c FinalProjectStageA-work/calc3a.c
+--- FinalProjectStageA-patched/calc3a.c	2014-12-09 12:01:52.000000000 -0500
++++ FinalProjectStageA-work/calc3a.c	2014-12-09 11:59:49.000000000 -0500
+@@ -31,7 +31,7 @@
+ 		}
+ 		case typeIdInit: {
+ 			struct symbol_entry *entry = getSymbolEntry(p->id.s);
+-			if (!entry) {
++			if (!entry || entry->blk_level != getCurrentLevel()) {
+ 				entry = calloc(1, sizeof(struct symbol_entry));
+ 				entry->name = p->id.s;
+ 				entry->value.type = p->id.type; // rgc: new LHS var inherits type from idnode type
+@@ -48,8 +48,8 @@
+ 				case B_BEGIN: {
+ 					pushSymbolTable();
+ 					ex(p->opr.op[0]);
+-					popSymbolTable();
+ 					printSymbolTable(); //added (JWJ)
++					popSymbolTable();
+ 					return rvTrue;
+ 				}
+ 				case WHILE:	
+Only in FinalProjectStageA-work/: calc3a.o
+diff -r -u FinalProjectStageA-patched/calc3.y FinalProjectStageA-work/calc3.y
+--- FinalProjectStageA-patched/calc3.y	2014-12-09 12:01:52.000000000 -0500
++++ FinalProjectStageA-work/calc3.y	2014-12-09 11:46:10.000000000 -0500
+@@ -66,7 +66,7 @@
+         | IF '(' expr ')' stmt %prec IFX { $$ = opr(IF, 2, $3, $5); }
+         | IF '(' expr ')' stmt ELSE stmt { $$ = opr(IF, 3, $3, $5, $7); }
+         | '{' stmt_list '}'              { $$ = $2; }
+-        | B_BEGIN stmt_list B_END        { $$ = $2;  printSymbolTable(); }
++        | B_BEGIN stmt_list B_END        { $$ = opr(B_BEGIN, 1, $2); }
+         ;
+ 
+ stmt_list:
+Only in FinalProjectStageA-work/: lex.yy.c
+Only in FinalProjectStageA-work/: lex.yy.o
+Only in FinalProjectStageA-work/: pass2i
+diff -r -u FinalProjectStageA-patched/sample-block.pass FinalProjectStageA-work/sample-block.pass
+--- FinalProjectStageA-patched/sample-block.pass	2014-12-09 12:01:52.000000000 -0500
++++ FinalProjectStageA-work/sample-block.pass	2014-12-09 11:47:14.000000000 -0500
+@@ -4,8 +4,12 @@
+ 
+ while (i < n)
+   begin
++    int z = -3;
++    s = 1;
++    print(s);
+     i = i + 1;
+-    int s = s + (2*i-1);
++    int s = 5 + i;
++    print(s);
+   end
+ 
+ print s;
+Only in FinalProjectStageA-work/: symbol_table.o
+Only in FinalProjectStageA-work/: y.tab.c
+Only in FinalProjectStageA-work/: y.tab.h
+Only in FinalProjectStageA-work/: y.tab.o

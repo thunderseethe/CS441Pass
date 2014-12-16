@@ -1,0 +1,15 @@
+int n = 4;
+int s = 0;
+int i = 0;
+
+while (i < n)
+  begin
+    int z = -3;
+    s = 1;
+    print(s);
+    i = i + 1;
+    int s = 5 + i;
+    print(s);
+  end
+
+print s;

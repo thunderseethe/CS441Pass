@@ -1,0 +1,6 @@
+// declares a float constant and then produces an error when attempting to change it
+
+const float y = 3.1415;
+print y;
+y = 13.0;
+print y;

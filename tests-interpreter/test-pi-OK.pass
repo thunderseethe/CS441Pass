@@ -1,0 +1,22 @@
+//.TEST -- JWJ
+//.Step 1  -- testing floats (before declarations are implemented)
+//.source: test-pi-0.cal
+//.expected output: test-pi_expected.out
+//.this program is easiest (easier  than test-1m.cal - no loop, no int)
+//.REMOVE THE ABOVE LINES IF COMMENTS ARE NOT IMPLEMENTED!!!
+
+//compute pi using fractions
+{
+	double pi_1;
+	double  pi_2;
+	double pi;
+	pi = 3.14159265359;
+	pi_1 = 22.0/7.0;
+	print pi_1;
+	pi_2 = 355.0/113.0;
+	print pi_2;
+	print (pi_1 -pi_2);
+	print pi;
+	print (pi -pi_2);
+}
+

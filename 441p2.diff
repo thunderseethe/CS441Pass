@@ -1,0 +1,129 @@
+diff -N -r -u FinalProjectStageA-orig/Makefile FinalProjectStageA-12-08/Makefile
+--- FinalProjectStageA-orig/Makefile	2014-11-20 09:12:04.000000000 -0500
++++ FinalProjectStageA-12-08/Makefile	2014-12-08 10:24:27.000000000 -0500
+@@ -1,7 +1,14 @@
++#! /usr/bin/make -f
++
++# To disable symbol table dumps, swap the comment in the next two lines
++# and rebuild (including make clean)
++CXXFLAGS=-g -DDEBUG_SYMBOL_TABLE
++# CXXFLAGS=-g
++
+ all: calc3a_exe
+ 
+-calc3a_exe: calc3 symbol_table calc3a_o
+-	g++ y.tab.o lex.yy.o symbol_table.o calc3a.o -o pass2i
++calc3a_exe: calc3 symbol_table.o calc3a_o
++	g++ $(CXXFLAGS) y.tab.o lex.yy.o symbol_table.o calc3a.o -o pass2i
+ 
+ calc3: calc3_bison calc3_flex
+ 	gcc -c y.tab.c lex.yy.c
+@@ -15,8 +22,9 @@
+ calc3_flex:
+ 	flex calc3.l
+ 
+-symbol_table:
+-	g++ -g -c -o symbol_table.o symbol_table.cc
++
++symbol_table.o:
++	g++ $(CXXFLAGS) -c -o symbol_table.o symbol_table.cc
+ 
+ clean:
+ 	rm -rf *.o
+diff -N -r -u FinalProjectStageA-orig/calc3.y FinalProjectStageA-12-08/calc3.y
+--- FinalProjectStageA-orig/calc3.y	2014-11-20 09:20:03.000000000 -0500
++++ FinalProjectStageA-12-08/calc3.y	2014-12-05 14:47:02.000000000 -0500
+@@ -44,7 +44,8 @@
+ %%
+ 
+ program:
+-        function                { exit(0); }
++        function                { printSymbolTable();
++ exit(0); }
+         ;
+ 
+ function:
+@@ -65,7 +66,7 @@
+         | IF '(' expr ')' stmt %prec IFX { $$ = opr(IF, 2, $3, $5); }
+         | IF '(' expr ')' stmt ELSE stmt { $$ = opr(IF, 3, $3, $5, $7); }
+         | '{' stmt_list '}'              { $$ = $2; }
+-        | B_BEGIN stmt_list B_END        { $$ = $2; }
++        | B_BEGIN stmt_list B_END        { $$ = $2;  printSymbolTable(); }
+         ;
+ 
+ stmt_list:
+diff -N -r -u FinalProjectStageA-orig/calc3a.c FinalProjectStageA-12-08/calc3a.c
+--- FinalProjectStageA-orig/calc3a.c	2012-11-20 12:14:57.000000000 -0500
++++ FinalProjectStageA-12-08/calc3a.c	2014-12-05 14:41:44.000000000 -0500
+@@ -49,6 +49,7 @@
+ 					pushSymbolTable();
+ 					ex(p->opr.op[0]);
+ 					popSymbolTable();
++					printSymbolTable(); //added (JWJ)
+ 					return rvTrue;
+ 				}
+ 				case WHILE:	
+diff -N -r -u FinalProjectStageA-orig/sample-block.pass FinalProjectStageA-12-08/sample-block.pass
+--- FinalProjectStageA-orig/sample-block.pass	1969-12-31 19:00:00.000000000 -0500
++++ FinalProjectStageA-12-08/sample-block.pass	2014-12-09 08:09:14.000000000 -0500
+@@ -0,0 +1,11 @@
++int n = 4;
++int s = 0;
++int i = 0;
++
++while (i < n)
++  begin
++    i = i + 1;
++    int s = s + (2*i-1);
++  end
++
++print s;
+diff -N -r -u FinalProjectStageA-orig/symbol_table.cc FinalProjectStageA-12-08/symbol_table.cc
+--- FinalProjectStageA-orig/symbol_table.cc	2012-11-19 21:55:05.000000000 -0500
++++ FinalProjectStageA-12-08/symbol_table.cc	2014-12-08 10:21:04.000000000 -0500
+@@ -37,6 +37,7 @@
+ void
+ printSymbolTable ()
+ {
++#ifdef DEBUG_SYMBOL_TABLE
+   //A pointer to the current symbol table
+   map < string, symbol_entry > *curr_symbol_table;
+ 
+@@ -93,6 +94,7 @@
+ 	    }
+ 	}
+     }
++#endif // DEBUG_SYMBOL_TABLE
+ }
+ 
+ void
+@@ -118,6 +120,8 @@
+ 
+   //Used to track the current block level
+   int symbol_table_level = symbol_table_stack.size ();
++  if (new_entry->size == 0)
++    new_entry->size = 1;
+ 
+   //Get an iterator to loop through the entire stack from lowest level
+   //block to highest level block
+@@ -185,7 +189,7 @@
+ 	      while (cur_entry != curr_symbol_table->end ())
+ 		{
+ 		  entry = &(*curr_symbol_table)[cur_entry->first];
+-		  if(entry->offset == offset)
++		  if(entry->offset == offset) 
+ 		  {
+ 		    return entry;
+ 		  }
+diff -N -r -u FinalProjectStageA-orig/test-c.pass FinalProjectStageA-12-08/test-c.pass
+--- FinalProjectStageA-orig/test-c.pass	1969-12-31 19:00:00.000000000 -0500
++++ FinalProjectStageA-12-08/test-c.pass	2014-12-05 19:35:18.000000000 -0500
+@@ -0,0 +1,8 @@
++{
++int i, j;
++i = 441;
++j = i + 1 - 441;
++print i;
++print j;
++if( j == i ) {print 5;} else {print 3;}
++}

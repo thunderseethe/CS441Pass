@@ -1,0 +1,6 @@
+// declares an integer constant and then produces an error when attempting to change it
+
+const int n = 31415;
+print x;
+x = 2012;
+print x;

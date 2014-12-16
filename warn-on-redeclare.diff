@@ -1,0 +1,16 @@
+Only in FinalProjectStageA-work/: a.pass
+diff -ru FinalProjectStageA-2014-12-09/calc3a.c FinalProjectStageA-work/calc3a.c
+--- FinalProjectStageA-2014-12-09/calc3a.c	2014-12-09 11:59:49.000000000 -0500
++++ FinalProjectStageA-work/calc3a.c	2014-12-09 14:31:16.000000000 -0500
+@@ -40,6 +40,9 @@
+ 
+ 				/* need to look it up again since addSymbol makes a copy */
+ 				entry = getSymbolEntry(p->id.s);
++			} else {
++				fprintf(stderr, "Warning: redeclaring variable %s in the same scope, re-using instance\n",
++					p->id.s);
+ 			}
+ 			return rvTrue; //rgc: just initializing here, nothing to see, move along
+ 		}
+Binary files FinalProjectStageA-2014-12-09/calc3a.o and FinalProjectStageA-work/calc3a.o differ
+Binary files FinalProjectStageA-2014-12-09/pass2i and FinalProjectStageA-work/pass2i differ

@@ -1,0 +1,8 @@
+int k = 5;
+print k;
+for(int i = 0; i < 5; i++;)
+begin
+	int k = i;
+	print k;
+end
+print k;

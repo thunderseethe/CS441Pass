@@ -1,0 +1,15 @@
+begin
+	int i=3;
+
+	begin
+		int i=5;
+		print i;
+		begin
+			int l;
+			print i;
+		end
+	end
+
+	print i;
+	int i;
+end

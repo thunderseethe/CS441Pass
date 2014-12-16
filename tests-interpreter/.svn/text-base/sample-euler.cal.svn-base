@@ -1,0 +1,19 @@
+int n = 10;
+float  s = 0;
+float  t = 1;
+int i = 0;
+int j = 0;
+while (i < n)
+{
+	j = 0;
+	t = 1;
+	while (j < i) 
+	{
+		j = j + 1;
+		t = t * j;
+	}
+	print t;
+	s = s + (1 / t);
+	i = i + 1;
+}
+print s;
