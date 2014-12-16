@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 #include "symbol_table.h"
 #include "calc3.h"
 #include "y.tab.h"
@@ -51,7 +52,6 @@ dataType ex(nodeType *p) {
 				case B_BEGIN: {
 					pushSymbolTable();
 					ex(p->opr.op[0]);
-					//printSymbolTable(); //added (JWJ)
 					popSymbolTable();
 					return rvTrue;
 				}
@@ -76,6 +76,9 @@ dataType ex(nodeType *p) {
 						return rvTrue;
 					} else if (pv.type == TYPE_DOUBLE) {
 						printf("%f\n", pv._double);
+						return rvTrue;
+					} else if (pv.type == TYPE_LONG) {
+						printf("%ld\n", pv._long);
 						return rvTrue;
 					} else {
 						fprintf(stderr, "Error at line %d: printing unrecognized type\n", yylineno);
@@ -123,10 +126,12 @@ dataType ex(nodeType *p) {
 							entry->value = rhs;
 						} else if (entry->value.type == TYPE_INT) {
 							// LHS int, RHS double
-							entry->value._int = (int) rhs._double;
+							entry->value._int = (int) (rhs.type == TYPE_LONG ? rhs._long : rhs._double);
 						} else if (entry->value.type == TYPE_DOUBLE) {
 							// LHS double, RHS int
-							entry->value._double = (double) rhs._int;
+							entry->value._double = (double) (rhs.type == TYPE_INT ? rhs._long : rhs._int);
+						} else if (entry->value.type == TYPE_LONG){
+							entry->value._long = (long) (rhs.type == TYPE_INT ? rhs._int : rhs._double);
 						}
 						if(entry->value.flag == FLAG_CONST_UNDEF){
 							entry->value.flag = FLAG_CONST_DEF;
@@ -139,6 +144,8 @@ dataType ex(nodeType *p) {
 						value._int *= -1;
 					} else if (value.type == TYPE_DOUBLE) {
 						value._double *= -1;
+					} else if (value.type == TYPE_LONG) {
+						value._long *= -1;
 					}
 					return value;
 				}
@@ -147,6 +154,10 @@ dataType ex(nodeType *p) {
 					dataType value = ex(p->opr.op[0]);
 					if (value.type == TYPE_DOUBLE) {
 						int tmp = (int) value._double;
+						value.type = TYPE_INT;
+						value._int = tmp;
+					} else if (value.type == TYPE_LONG){
+						int tmp = (int) value._long;
 						value.type = TYPE_INT;
 						value._int = tmp;
 					}
@@ -159,6 +170,25 @@ dataType ex(nodeType *p) {
 						double tmp = (double) value._int;
 						value.type = TYPE_DOUBLE;
 						value._double = tmp;
+					} else if (value.type == TYPE_LONG){
+						double tmp = (double) value._long;
+						value.type = TYPE_DOUBLE;
+						value._double = tmp;
+					}
+					return value;
+				}
+
+				case T_LONG: {
+					dataType value = ex(p->opr.op[0]);
+					if(value.type == TYPE_INT) {
+						long tmp = (long) value._int;
+						value.type = TYPE_LONG;
+						value._long = tmp;
+					}
+					if(value.type == TYPE_DOUBLE) {
+						long tmp = (long) value._double;
+						value.type = TYPE_LONG;
+						value._long = tmp;
 					}
 					return value;
 				}
@@ -172,9 +202,12 @@ dataType ex(nodeType *p) {
 					if ((value0.type == TYPE_INT) && (value1.type == TYPE_INT)) {
 						rv.type = TYPE_INT;
 						rv._int = value0._int + value1._int;
-					} else {
+					} else if ((value0.type == TYPE_DOUBLE) || (value1.type == TYPE_DOUBLE)) {
 						rv.type = TYPE_DOUBLE;
-						rv._double = (value0.type==TYPE_INT ? (double)value0._int : value0._double) + (value1.type==TYPE_INT ? (double)value1._int : value1._double);
+						rv._double = (value0.type==TYPE_INT ? (double)value0._int : (value0.type==TYPE_LONG ? (double)value0._long : value0._double)) + (value1.type==TYPE_INT ? (double)value1._int : (value1.type==TYPE_LONG? (double)value1._long : value1._double));
+					} else {
+						rv.type = TYPE_LONG;
+						rv._long = (value0.type == TYPE_INT ? (long) value0._int : value0._long) + (value1.type==TYPE_INT ? (long) value1._int : value1._long);
 					}
 					return rv;
 				}
@@ -185,9 +218,12 @@ dataType ex(nodeType *p) {
 					if ((value0.type == TYPE_INT) && (value1.type == TYPE_INT)) {
 						rv.type = TYPE_INT;
 						rv._int = value0._int - value1._int;
-					} else {
+					} else if ((value0.type == TYPE_DOUBLE) || (value1.type == TYPE_DOUBLE)) {
 						rv.type = TYPE_DOUBLE;
-						rv._double = (value0.type==TYPE_INT ? (double)value0._int : value0._double) - (value1.type==TYPE_INT ? (double)value1._int : value1._double);
+						rv._double = (value0.type==TYPE_INT ? (double)value0._int : (value0.type==TYPE_LONG ? (double)value0._long : value0._double)) - (value1.type==TYPE_INT ? (double)value1._int : (value1.type==TYPE_LONG? (double)value1._long : value1._double));
+					} else {
+						rv.type = TYPE_LONG;
+						rv._long = (value0.type == TYPE_INT ? (long) value0._int : value0._long) - (value1.type==TYPE_INT ? (long) value1._int : value1._long);
 					}
 					return rv;
 				}
@@ -202,9 +238,12 @@ dataType ex(nodeType *p) {
 					if ((value0.type == TYPE_INT) && (value1.type == TYPE_INT)) {
 						rv.type = TYPE_INT;
 						rv._int = value0._int * value1._int;
-					} else {
+					} else if ((value0.type == TYPE_DOUBLE) || (value1.type == TYPE_DOUBLE)) {
 						rv.type = TYPE_DOUBLE;
-						rv._double = (value0.type==TYPE_INT ? (double)value0._int : value0._double) * (value1.type==TYPE_INT ? (double)value1._int : value1._double);
+						rv._double = (value0.type==TYPE_INT ? (double)value0._int : (value0.type==TYPE_LONG ? (double)value0._long : value0._double)) * (value1.type==TYPE_INT ? (double)value1._int : (value1.type==TYPE_LONG? (double)value1._long : value1._double));
+					} else {
+						rv.type = TYPE_LONG;
+						rv._long = (value0.type == TYPE_INT ? (long) value0._int : value0._long) * (value1.type==TYPE_INT ? (long) value1._int : value1._long);
 					}
 					return rv;
 				}
@@ -219,53 +258,95 @@ dataType ex(nodeType *p) {
 					if ((value0.type == TYPE_INT) && (value1.type == TYPE_INT)) {
 						rv.type = TYPE_INT;
 						rv._int = value0._int / value1._int;
-					} else {
+					} else if ((value0.type == TYPE_DOUBLE) || (value1.type == TYPE_DOUBLE)) {
 						rv.type = TYPE_DOUBLE;
-						rv._double = (value0.type==TYPE_INT ? (double)value0._int : value0._double) / (value1.type==TYPE_INT ? (double)value1._int : value1._double);
+						rv._double = (value0.type==TYPE_INT ? (double)value0._int : (value0.type==TYPE_LONG ? (double)value0._long : value0._double)) / (value1.type==TYPE_INT ? (double)value1._int : (value1.type==TYPE_LONG? (double)value1._long : value1._double));
+					} else {
+						rv.type = TYPE_LONG;
+						rv._long = (value0.type == TYPE_INT ? (long) value0._int : value0._long) / (value1.type==TYPE_INT ? (long) value1._int : value1._long);
+					}
+					return rv;
+				}
+				case '%': {
+					//Computes modulo, any doubles are coerced to ints to perform the operation. Int's are coerced to longs if a long is present
+					dataType value0 = ex(p->opr.op[0]);
+					dataType value1 = ex(p->opr.op[1]);
+					dataType rv;
+					if((value0.type == TYPE_INT) && (value1.type == TYPE_INT)) {
+						rv.type = TYPE_INT;
+						rv._int = value0._int % value1._int;
+					} else if ((value0.type == TYPE_LONG) || (value1.type == TYPE_LONG)) {
+						rv.type = TYPE_LONG;
+						rv._long = (value0.type==TYPE_INT ? (long)value0._int : (value0.type==TYPE_LONG ? value0._long : (long)value0._double)) % (value1.type==TYPE_INT ? (long)value1._int : (value1.type==TYPE_LONG? value1._long : (long)value1._double));
+					} else {
+						rv.type = TYPE_LONG;
+						rv._long = (value0.type==TYPE_INT ? (long)value0._int : value0._long) % (value1.type==TYPE_INT ? (long)value1._int : value1._long);
 					}
 					return rv;
 				}
 				
+				case '^': {
+					dataType value0 = ex(p->opr.op[0]);
+					dataType value1 = ex(p->opr.op[1]);
+					dataType rv;
+					if((value0.type == TYPE_INT) && (value1.type == TYPE_INT)){
+						long check = (long) pow(value0._int, value1._int);
+						if(check >= INT_MAX){
+							rv.type = TYPE_LONG;
+							rv._long = check;
+						} else {
+							rv.type = TYPE_INT;
+							rv._int = (int) check;
+						}
+					} else if ((value0.type == TYPE_DOUBLE) || (value1.type == TYPE_DOUBLE)) {
+						rv.type = TYPE_DOUBLE;
+						rv._double = pow((value0.type==TYPE_INT ? (double)value0._int : (value0.type==TYPE_LONG ? (double)value0._long : value0._double)), (value1.type==TYPE_INT ? (double)value1._int : (value1.type==TYPE_LONG? (double)value1._long : value1._double)));
+					} else {
+						rv.type = TYPE_LONG;
+						rv._long = pow((value0.type==TYPE_INT ? (long)value0._int : value0._long), (value1.type==TYPE_INT ? (long)value0._int : value0._long));
+					}
+					return rv;
+				}
 				// rgc: for logic operations, we return an int 1 if true and int 0 if false. (rvTrue and rvFalse)
 				case '<':	{
 					dataType value0 = ex(p->opr.op[0]);
 					dataType value1 = ex(p->opr.op[1]);
-					if ((value0.type==TYPE_INT ? value0._int : value0._double) < (value1.type==TYPE_INT ? value1._int : value1._double)) return rvTrue;
+					if ((value0.type==TYPE_INT ? value0._int : (value0.type==TYPE_LONG ? (int)value0._long : value0._double)) < (value1.type==TYPE_INT ? value1._int : (value1.type==TYPE_LONG? (int)value1._long : value1._double))) return rvTrue;
 					// if we get here it's not true.
 					return rvFalse;
 				}
 				case '>':	{
 					dataType value0 = ex(p->opr.op[0]);
 					dataType value1 = ex(p->opr.op[1]);
-					if ((value0.type==TYPE_INT ? value0._int : value0._double) > (value1.type==TYPE_INT ? value1._int : value1._double)) return rvTrue;
+					if ((value0.type==TYPE_INT ? value0._int : (value0.type==TYPE_LONG ? (int)value0._long : value0._double)) > (value1.type==TYPE_INT ? value1._int : (value1.type==TYPE_LONG? (int)value1._long : value1._double))) return rvTrue;
 					// if we get here it's not true.
 					return rvFalse;
 				}
 				case GE:	{
 					dataType value0 = ex(p->opr.op[0]);
 					dataType value1 = ex(p->opr.op[1]);
-					if ((value0.type==TYPE_INT ? value0._int : value0._double) >= (value1.type==TYPE_INT ? value1._int : value1._double)) return rvTrue;
+					if ((value0.type==TYPE_INT ? value0._int : (value0.type==TYPE_LONG ? (int)value0._long : value0._double)) >= (value1.type==TYPE_INT ? value1._int : (value1.type==TYPE_LONG? (int)value1._long : value1._double))) return rvTrue;
 					// if we get here it's not true.
 					return rvFalse;
 				}
 				case LE:	{
 					dataType value0 = ex(p->opr.op[0]);
 					dataType value1 = ex(p->opr.op[1]);
-					if ((value0.type==TYPE_INT ? value0._int : value0._double) <= (value1.type==TYPE_INT ? value1._int : value1._double)) return rvTrue;
+					if ((value0.type==TYPE_INT ? value0._int : (value0.type==TYPE_LONG ? (int)value0._long : value0._double)) <= (value1.type==TYPE_INT ? value1._int : (value1.type==TYPE_LONG? (int)value1._long : value1._double))) return rvTrue;
 					// if we get here it's not true.
 					return rvFalse;
 				}
 				case NE:	{
 					dataType value0 = ex(p->opr.op[0]);
 					dataType value1 = ex(p->opr.op[1]);
-					if ((value0.type==TYPE_INT ? value0._int : value0._double) != (value1.type==TYPE_INT ? value1._int : value1._double)) return rvTrue;
+					if ((value0.type==TYPE_INT ? value0._int : (value0.type==TYPE_LONG ? (int)value0._long : value0._double)) != (value1.type==TYPE_INT ? value1._int : (value1.type==TYPE_LONG? (int)value1._long : value1._double))) return rvTrue;
 					// if we get here it's not true.
 					return rvFalse;
 				}
 				case EQ:	{
 					dataType value0 = ex(p->opr.op[0]);
 					dataType value1 = ex(p->opr.op[1]);
-					if ((value0.type==TYPE_INT ? value0._int : value0._double) == (value1.type==TYPE_INT ? value1._int : value1._double)) return rvTrue;
+					if ((value0.type==TYPE_INT ? value0._int : (value0.type==TYPE_LONG ? (int)value0._long : value0._double)) == (value1.type==TYPE_INT ? value1._int : (value1.type==TYPE_LONG? (int)value1._long : value1._double))) return rvTrue;
 					// if we get here it's not true.
 					return rvFalse;
 				}

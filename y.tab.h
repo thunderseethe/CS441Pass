@@ -39,7 +39,7 @@
    /* Put the tokens into the symbol table, so that GDB and other debuggers
       know about them.  */
    enum yytokentype {
-     INTEGER = 258,
+     NUMBER = 258,
      FLOAT = 259,
      VARIABLE = 260,
      WHILE = 261,
@@ -49,21 +49,22 @@
      B_END = 265,
      T_INT = 266,
      T_DOUBLE = 267,
-     CONST = 268,
-     DO = 269,
-     FOR = 270,
-     UNTIL = 271,
-     IFX = 272,
-     ELSE = 273,
-     NE = 274,
-     EQ = 275,
-     LE = 276,
-     GE = 277,
-     UMINUS = 278
+     T_LONG = 268,
+     CONST = 269,
+     DO = 270,
+     FOR = 271,
+     UNTIL = 272,
+     IFX = 273,
+     ELSE = 274,
+     NE = 275,
+     EQ = 276,
+     LE = 277,
+     GE = 278,
+     UMINUS = 279
    };
 #endif
 /* Tokens.  */
-#define INTEGER 258
+#define NUMBER 258
 #define FLOAT 259
 #define VARIABLE 260
 #define WHILE 261
@@ -73,17 +74,18 @@
 #define B_END 265
 #define T_INT 266
 #define T_DOUBLE 267
-#define CONST 268
-#define DO 269
-#define FOR 270
-#define UNTIL 271
-#define IFX 272
-#define ELSE 273
-#define NE 274
-#define EQ 275
-#define LE 276
-#define GE 277
-#define UMINUS 278
+#define T_LONG 268
+#define CONST 269
+#define DO 270
+#define FOR 271
+#define UNTIL 272
+#define IFX 273
+#define ELSE 274
+#define NE 275
+#define EQ 276
+#define LE 277
+#define GE 278
+#define UMINUS 279
 
 
 
@@ -92,13 +94,13 @@
 typedef union YYSTYPE
 #line 25 "calc3.y"
 {
-    int iValue;                 /* integer value */
+    long lValue;                 /* integer value */
 	double fValue;               /* floating point value */
     char *sName;                /* name of a variable - changed JWJ */
     nodeType *nPtr;             /* node pointer */
 }
 /* Line 1529 of yacc.c.  */
-#line 102 "y.tab.h"
+#line 104 "y.tab.h"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1

@@ -20,13 +20,13 @@ END_COMMENT_LINE [^\n]*"\*\/"
 <LONG_COMMENT>"*" {;}
 
 0           {
-                yylval.iValue = atoi(yytext);
-                return INTEGER;
+                yylval.lValue = atol(yytext);
+                return NUMBER;
             }
 
 [1-9][0-9]* {
-                yylval.iValue = atoi(yytext);
-                return INTEGER;
+                yylval.lValue = atol(yytext);
+                return NUMBER;
             }
 			
 [0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?	{
@@ -34,7 +34,7 @@ END_COMMENT_LINE [^\n]*"\*\/"
 				return FLOAT;
 			}
 
-[-()<>=+*/;{}.,] {
+[-()<>=+*/;{}.,%\^] {
                 return *yytext;
              }
 
@@ -54,6 +54,7 @@ END_COMMENT_LINE [^\n]*"\*\/"
 "int"			return T_INT; /* rgc: reserved words for int and float/double types */
 "double"		return T_DOUBLE;
 "float"		    return T_DOUBLE;
+"long"          return T_LONG;
 "const"         return CONST;
 
 [a-zA-Z_][a-zA-Z0-9_]* {  /* changed JWJ */

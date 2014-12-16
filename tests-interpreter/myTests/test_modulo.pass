@@ -1,0 +1,9 @@
+//Test for the modulo operator
+
+begin
+	print (4 % 1);
+	float y = 2.5;
+	int x = 5;
+	print x % y;
+	print (7.5 % 8);
+end

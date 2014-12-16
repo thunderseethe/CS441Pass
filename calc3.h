@@ -1,6 +1,8 @@
 #ifndef __CALC3_H
 #define __CALC3_H
 
+#define INT_MAX 2147483647
+
 // rgc: node types
 typedef enum { 
 	typeCon, // constant (int or FP)
@@ -12,6 +14,7 @@ typedef enum {
 // rgc: id types.
 typedef enum { 
 	TYPE_INT,
+	TYPE_LONG,
 	TYPE_DOUBLE,
 	TYPE_CONST,
 	TYPE_FUNCTION, //rgc: for function support later on
@@ -31,6 +34,7 @@ typedef struct {
 	union {
 		int _int;					// data for int
 		double _double;				// data for double
+		long _long;					// data for long
 	};
 } dataType;
 

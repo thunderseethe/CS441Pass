@@ -1,0 +1,10 @@
+//An algorithm to approximate the cube root of a number
+
+int start = 5;
+double guess = 1.5;
+int prec = 10; //Higher number here gives greater precision
+for(int i = 0; i < prec; i = i + 1) {
+	double tmp = guess;
+	guess = (1/3.0) * (2*tmp + start/(tmp ^ 2));
+}
+print guess;

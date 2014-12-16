@@ -10,7 +10,7 @@
 nodeType *opr(int oper, int nops, ...);
 nodeType *id(char *name); /* changed JWJ */
 nodeType *cid(char *name, vartypeEnum type, flagsEnum flags); /* rgc: creating id with a type */
-nodeType *con(int value);
+nodeType *con(long value);
 nodeType *fpcon(double value);
 void freeNode(nodeType *p);
 dataType ex(nodeType *p);
@@ -23,16 +23,16 @@ void yyerror(char *s);
 %}
 
 %union {
-    int iValue;                 /* integer value */
+    long lValue;                 /* integer value */
 	double fValue;               /* floating point value */
     char *sName;                /* name of a variable - changed JWJ */
     nodeType *nPtr;             /* node pointer */
 };
 
-%token <iValue> INTEGER
+%token <lValue> NUMBER
 %token <fValue> FLOAT
 %token <sName> VARIABLE /* changed JWJ */
-%token WHILE IF PRINT B_BEGIN B_END T_INT T_DOUBLE CONST
+%token WHILE IF PRINT B_BEGIN B_END T_INT T_DOUBLE T_LONG CONST
 %token DO FOR UNTIL
 %nonassoc IFX
 %nonassoc ELSE
@@ -95,16 +95,18 @@ expr:
 term:
           term '*' factor { $$ = opr('*', 2, $1, $3); }
         | term '/' factor { $$ = opr('/', 2, $1, $3); }
+        | term '%' factor { $$ = opr('%', 2, $1, $3); }
         | factor          { $$ = $1; }
         ;
 
 factor:
-          INTEGER               { $$ = con($1); }
+          NUMBER                { $$ = con($1); }
         | FLOAT                 { $$ = fpcon($1); }
         | VARIABLE              { $$ = id($1); }
         | '(' T_INT ')' expr    { $$ = opr(T_INT, 1, $4); }
         | '(' T_DOUBLE ')' expr { $$ = opr(T_DOUBLE, 1, $4); }
         | '-' expr %prec UMINUS { $$ = opr(UMINUS, 1, $2); }
+        | expr '^' expr         { $$ = opr('^', 2, $1, $3); }
         | expr '<' expr         { $$ = opr('<', 2, $1, $3); }
         | expr '>' expr         { $$ = opr('>', 2, $1, $3); }
         | expr GE expr          { $$ = opr(GE, 2, $1, $3); }
@@ -121,6 +123,7 @@ typedecl_expr:
 type:
       T_INT { type = TYPE_INT; }
     | T_DOUBLE { type = TYPE_DOUBLE; }
+    | T_LONG { type = TYPE_LONG; }
 
 variable_list:
           var_opr ',' variable_list { $$ = $3; ex($1); }
@@ -136,7 +139,7 @@ var_opr:
 
 #define SIZEOF_NODETYPE ((char *)&p->con - (char *)p)
 
-nodeType *con(int value) {
+nodeType *con(long value) {
     nodeType *p;
     size_t nodeSize;
 
@@ -146,9 +149,15 @@ nodeType *con(int value) {
         yyerror("out of memory");
 
     /* copy information */
-    p->type = typeCon;
-	p->con.value.type = TYPE_INT;
-    p->con.value._int = value;
+    if(value >= INT_MAX){
+        p->type = typeCon;
+        p->con.value.type = TYPE_LONG;
+        p->con.value._long = value;
+    }else {
+        p->type = typeCon;
+	    p->con.value.type = TYPE_INT;
+        p->con.value._int = (int)value;
+    }
 
     return p;
 }
