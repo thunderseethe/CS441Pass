@@ -1551,7 +1551,7 @@ yyreduce:
     {
         case 2:
 #line 53 "calc3.y"
-    { printSymbolTable(); exit(0); }
+    { exit(0); }
     break;
 
   case 3:

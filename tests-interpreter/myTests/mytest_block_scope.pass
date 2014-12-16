@@ -1,0 +1,12 @@
+/*
+ * A simple test to see if { stmt_list } properly creates 
+ * a new scope as it should	
+ */
+int n = 5;
+int k = 5;
+print k;
+for(int i = 0; i < n; i = i + 1){
+	int k = i;
+	print k;
+}
+print k;

@@ -1,0 +1,9 @@
+//Test for pow operator (^)
+
+begin
+	print (2 ^ 3);
+	int x = 4;
+	float y = 0.5;
+	print (x ^ y);
+	print (2.5 ^ 2);
+end

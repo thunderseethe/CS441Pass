@@ -1,0 +1,11 @@
+//Test for the new long type
+
+begin
+	int n =  2147483647;
+	int m =  2147483647;
+	print (n + m); //Should over flow because they're ints
+	//Testing that number literals are properly stored as longs if they're over INT_MAX
+	print (2147483647 + 2147483647);
+	long j = 2147483647; //Test storing longs
+	print (j * 3); // Test type coercion for longs
+end 
